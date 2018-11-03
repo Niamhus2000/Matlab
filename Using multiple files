@@ -1,0 +1,22 @@
+cd y:\TIMIT_database\TIMIT\TRAIN\DR1\FCJF0
+%cd C:\users\Niamh\Documents\MATLAB\FAKS0
+
+mylist = ls('*.wav')
+numfiles = length(mylist);
+
+for j = 1:1:numfiles
+   
+   myfile = strip(mylist(j, :));
+   [s,fs,wrd,phn]=readsph(myfile,'wt');
+   [x,fs]=audioread(myfile);
+   
+   figure
+   t=(0:length(x)-1)/fs;
+   max_x = max(x);
+   plot(t,x/max_x);
+   hold on
+   xlabel('Time (s)');
+   ylabel('Amplitude');
+   legend(myfile);
+   
+end
