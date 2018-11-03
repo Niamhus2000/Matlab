@@ -1,0 +1,29 @@
+cd y:\TIMIT_database\TIMIT\TRAIN\DR1\FCJF0
+%cd C:\users\Niamh\Documents\MATLAB\FAKS0
+
+fn=input('Enter WAV filename : ','s');
+[x,fs] = audioread(fn); %x = sampled data, fs = sampling rate
+[s,fs,wrd,phn] = readsph(fn,'wt');
+
+len = length(x);
+full_time = len/fs;
+%% using RAPT
+%fxrapt: [FX,VUV]=(S,FS,M,Q)
+% s = speech signal, fs = sample frequency, 
+%M: mode; g = plot graph, u = includes unvoiced frames
+%q = structure with parameter values (e.g. q.f0min=40);
+[fx, vuv] = fxrapt(s, fs, 'gu');
+L2 = length(vuv);
+voiced_rapt = zeros(1, L2);
+for i = 1:1:L2
+    if(vuv(i, 3) == 1)
+       voiced_rapt(i) = 0;
+    else
+        voiced_rapt(i) = 1;
+    end
+end
+
+time = zeros(1, L2);
+for j = 1:1:L2
+    time(j) = vuv(j, 1)/fs;
+end
