@@ -1,0 +1,99 @@
+%cd y:\TIMIT_database\TIMIT\TRAIN\DR1\FCJF0
+%cd C:\users\Niamh\Documents\MATLAB\FAKS0
+cd Z:\5C4\FCJF0
+
+%making arrays of the phonemes to compare to the .phn file to classify
+%into voiced/unvoiced
+%decisions were made based on pages 86 and 88 of the Rabiner book
+phn_v = {
+    %vowels
+    'iy'; 'ih'; 'eh'; 'ae'; 'aa'; 'ah'; 'ao'; 'ow'; 'uh'; 'uw'; 'ux'; 'er'; 'ax'; 'ix'; 'axr'; 'ax-h';
+    %dipthong
+    'ey'; 'aw'; 'ay'; 'oy';
+    %semivowels
+    'l'; 'r'; 'w'; 'y'; 'hh'; 'hv'; 'el';
+    %consonant
+    'jh';
+    %nasal
+    'm'; 'n'; 'ng'; 'em'; 'en'; 'nx'; 'eng';
+    %voiced stop
+    'b'; 'bcl'; 'd'; 'dcl' ;'g'; 'gcl'
+    %voiced fricative
+    'v';'dh';'z';'zh'; 'dx'
+    };
+
+phn_uv = {
+    %unvoiced stop
+    'p'; 'pcl'; 't'; 'tcl'; 'k'; 'kcl'; 'q'
+    %unvoiced fricatives
+    'f'; 'th'; 's'; 'sh';
+    %consonants
+    'ch'; 'hh';
+    %silence
+    'pau'; 'epi'; 'h#'
+    };
+phn_v = string(phn_v);
+phn_uv = string(phn_uv);
+
+
+mylist = ls('*.wav');
+numfiles = length(mylist); %number of files
+myfile = strip(mylist(1, :));
+[s,fs,wrd,phn]=readsph(myfile,'wt');
+
+%create empty arrays to store the phonemes and times from the .phn file 
+phn_phn = strings(length(phn), 1); 
+phn_time = zeros(length(phn), 2); 
+%create empty array to store the voiced/unvoiced/silence decision
+phn_vuv = strings(length(phn), 1);
+
+%cell2mat converts a cell array into a normal array
+for a = 1:length(phn)
+    N = cell2mat(phn(a, 2));
+    M = cell2mat(phn(a, 1));
+    phn_phn(a)= N;
+    
+    %convert the time into samples
+    phn_time(a, 1)= M(1, 1)*fs;
+    phn_time(a, 2)= M(1, 2)*fs;
+end
+
+%compare the phonemes from the .phn file to the lists of phonemes to
+%classify if they are voiced/unvoiced
+ for i = 1:length(phn_phn)
+    for j = 1:length(phn_v)
+       if (phn_phn(i) == phn_v(j))
+           phn_vuv(i, 1) = 'V';
+           break;
+       end
+    end 
+ end  
+
+ for i = 1:length(phn_phn)
+    for j = 1:length(phn_uv)
+       if (phn_phn(i) == phn_uv(j))
+           phn_vuv(i, 1) = 'UV';
+           break;
+       end
+    end 
+ end  
+    
+ %add the time array with the vuv array to get it back into the original
+ %format
+phn_vuv = [phn_time  phn_vuv];
+
+%creating the correct name for the new .VUV file
+format_name = '%s.VUV';
+file_name = strsplit(myfile, '.');
+filename = file_name(1);
+filename = char(filename);
+file_name = sprintf(format_name, filename);
+
+%writing to the new .VUV file
+fileID = fopen(file_name, 'w');
+formatSpec = '%s %s %s \r\n';
+[nrows,ncols] = size(phn_vuv);
+for row = 1:nrows
+    fprintf(fileID, formatSpec, phn_vuv{row,:});
+end
+fclose(fileID);
